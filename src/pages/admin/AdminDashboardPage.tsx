@@ -3,6 +3,7 @@ import { scoutStages } from '../../data/siteData'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { joinRequestService } from '../../services/joinRequestService'
 import type { SavedJoinRequest } from '../../types/content'
+import { calculateAge } from '../../utils/format'
 
 const stageLabel = (value: string) => scoutStages.find((stage) => stage.value === value)?.label ?? value
 
@@ -62,7 +63,7 @@ export function AdminDashboardPage() {
                 {requests.map((r) => (
                   <tr key={r.id} className="border-t border-surface-container">
                     <td className="p-space-sm font-bold text-primary">{r.fullName}</td>
-                    <td className="p-space-sm">{r.age}</td>
+                    <td className="p-space-sm">{calculateAge(r.birthDate) ?? '—'}</td>
                     <td className="p-space-sm">{stageLabel(r.scoutStage)}</td>
                     <td className="p-space-sm" dir="ltr">{r.phone}</td>
                     <td className="p-space-sm" dir="ltr">{r.whatsapp}</td>

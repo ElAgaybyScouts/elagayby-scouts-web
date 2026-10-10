@@ -79,7 +79,7 @@ export type ContactCard = {
 
 export type JoinRequest = {
   fullName: string
-  age: string
+  birthDate: string // yyyy-mm-dd
   grade: string
   scoutStage: string
   address: string

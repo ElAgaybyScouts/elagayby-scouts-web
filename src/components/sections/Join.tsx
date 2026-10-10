@@ -7,13 +7,13 @@ import { scoutStages } from '../../data/siteData'
 import { joinRequestService } from '../../services/joinRequestService'
 import type { JoinRequest } from '../../types/content'
 import { cn } from '../../utils/cn'
-import { isEgyptianMobile, toLatinDigits } from '../../utils/format'
+import { calculateAge, isEgyptianMobile, toLatinDigits } from '../../utils/format'
 
 type Errors = Partial<Record<keyof JoinRequest, string>>
 
 const emptyForm: JoinRequest = {
   fullName: '',
-  age: '',
+  birthDate: '',
   grade: '',
   scoutStage: '',
   address: '',
@@ -32,7 +32,7 @@ const emptyForm: JoinRequest = {
 /** ترتيب الحقول زي ما بتظهر في الصفحة — بنستخدمه عشان نعمل focus على أول خطأ */
 const fieldOrder: Array<keyof JoinRequest> = [
   'fullName',
-  'age',
+  'birthDate',
   'grade',
   'scoutStage',
   'address',
@@ -46,14 +46,14 @@ const fieldOrder: Array<keyof JoinRequest> = [
 
 function validate(values: JoinRequest): Errors {
   const errors: Errors = {}
-  const age = Number(toLatinDigits(values.age))
-  const isMinor = Number.isFinite(age) && values.age.trim() !== '' && age < 18
+  const age = calculateAge(values.birthDate)
+  const isMinor = age !== null && age < 18
 
   if (values.fullName.trim().split(/\s+/).filter(Boolean).length < 3) {
     errors.fullName = 'اكتب الاسم ثلاثي على الأقل (الاسم رباعي مفضّل).'
   }
-  if (!values.age.trim() || !Number.isInteger(age) || age < 5 || age > 30) {
-    errors.age = 'السن لازم يكون من ٥ لـ ٣٠ سنة.'
+  if (age === null || age < 5 ) {
+    errors.birthDate = 'اختار تاريخ ميلاد صحيح (السن لازم يكون فوق ٥ سنين).'
   }
   if (!values.grade.trim()) errors.grade = 'اكتب الصف الدراسي.'
   if (!values.scoutStage) errors.scoutStage = 'اختار المرحلة الكشفية.'
@@ -85,8 +85,9 @@ export function Join() {
   // بعد أول محاولة إرسال، الأخطاء بتتحدّث لحظيًا وانت بتكتب
   const errors = attempted ? validate(values) : {}
 
-  const age = Number(toLatinDigits(values.age))
-  const isMinor = values.age.trim() !== '' && Number.isFinite(age) && age < 18
+  const age = calculateAge(values.birthDate)
+  const isMinor = age !== null && age < 18
+  const todayIso = new Date().toLocaleDateString('en-CA') // yyyy-mm-dd بتوقيت الجهاز
 
   function set<K extends keyof JoinRequest>(key: K, value: JoinRequest[K]) {
     setValues((prev) => ({ ...prev, [key]: value }))
@@ -120,7 +121,6 @@ export function Join() {
       await joinRequestService.submit({
         ...values,
         // نخزّن الأرقام بالإنجليزي عشان تتقري في أي نظام (واتساب/باك إند)
-        age: toLatinDigits(values.age).trim(),
         phone: toLatinDigits(values.phone).trim(),
         whatsapp: toLatinDigits(values.whatsapp).trim(),
         parentPhone: toLatinDigits(values.parentPhone).trim(),
@@ -183,8 +183,13 @@ export function Join() {
                     <input {...bind('fullName')} type="text" placeholder="مثال: بيتر ميخائيل شنودة غالي" autoComplete="name" />
                   </Field>
                   <div className="grid grid-cols-2 gap-space-sm">
-                    <Field id="age" label="السن *" error={errors.age}>
-                      <input {...bind('age')} type="text" inputMode="numeric" maxLength={2} placeholder="مثال: ١٤" />
+                    <Field id="birthDate" label="تاريخ الميلاد *" error={errors.birthDate}>
+                      <input {...bind('birthDate')} type="date" max={todayIso} min="1990-01-01" />
+                      {age !== null && age >= 0 ? (
+                        <p className="font-label-md text-label-md text-primary font-bold">
+                          عمرك: {age.toLocaleString('ar-EG')} سنة
+                        </p>
+                      ) : null}
                     </Field>
                     <Field id="grade" label="الصف الدراسي *" error={errors.grade}>
                       <input {...bind('grade')} type="text" placeholder="مثال: الصف الثاني الإعدادي" />

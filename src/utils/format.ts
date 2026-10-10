@@ -13,3 +13,17 @@ export function isEgyptianMobile(value: string) {
   const cleaned = toLatinDigits(value).replace(/[\s\-()]/g, '').replace(/^(\+20|0020|20)/, '0')
   return /^01[0125]\d{8}$/.test(cleaned)
 }
+
+/** بيحسب السن من تاريخ الميلاد (yyyy-mm-dd). بيرجّع null لو التاريخ ناقص أو غلط أو في المستقبل */
+export function calculateAge(birthDate: string, today = new Date()) {
+  const [y, m, d] = birthDate.split('-').map(Number)
+  if (!y || !m || !d) return null
+  const born = new Date(y, m - 1, d)
+  if (born.getMonth() !== m - 1 || born > today) return null
+
+  let age = today.getFullYear() - y
+  const hadBirthday =
+    today.getMonth() + 1 > m || (today.getMonth() + 1 === m && today.getDate() >= d)
+  if (!hadBirthday) age--
+  return age
+}
