@@ -1,0 +1,53 @@
+# مثال إعداد nginx لموقع الـ React (Vite) + Spring Boot.
+# عدّل server_name و root ومنفذ الباك إند حسب السيرفر عندك.
+
+server {
+    listen 80;
+    server_name YOUR-DOMAIN.com;
+    # TODO: فعّل HTTPS (مثلًا certbot) وحوّل HTTP لـ HTTPS — الموقع بياخد بيانات شخصية.
+
+    root /var/www/elagayby-scouts-web/dist;   # ناتج npm run build
+    index index.html;
+
+    gzip on;
+    gzip_types text/css application/javascript image/svg+xml application/json;
+
+    # headers أمان بسيطة
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # ملفات Vite (اسمها فيه hash) — كاش سنة كاملة
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # الصور في public/ (اسمها ثابت) — كاش أسبوع
+    location /images/ {
+        expires 7d;
+        add_header Cache-Control "public";
+        try_files $uri =404;
+    }
+
+    # index.html من غير كاش عشان التحديثات توصل فورًا
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    # الراوتر (createBrowserRouter): أي مسار يرجّع index.html بدل 404
+    location / {
+        try_files $uri /index.html;
+        add_header Cache-Control "no-cache";
+    }
+
+    # TODO: لما الـ Spring Boot يجهز — proxy على نفس الدومين (مفيش CORS)
+    # location /api/ {
+    #     proxy_pass http://127.0.0.1:8080;
+    #     proxy_set_header Host $host;
+    #     proxy_set_header X-Real-IP $remote_addr;
+    #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    #     proxy_set_header X-Forwarded-Proto $scheme;
+    # }
+}
