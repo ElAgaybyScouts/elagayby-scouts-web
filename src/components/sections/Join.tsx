@@ -261,7 +261,7 @@ export function Join() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-                  <Field id="motivation" label="لماذا تريد الانضمام لمجوعة العجايبي الكشفيةلمن هم دون ١٨ سنة؟">
+                  <Field id="motivation" label="لماذا تريد الانضمام لمجموعة العجايبي الكشفية؟">
                     <textarea {...bind('motivation')} rows={3} placeholder="تعلّم مهارات جديدة، تكوين أصدقاء، حب التخييم والمغامرة..." />
                   </Field>
                   <Field id="talents" label="هل لديك أي مهارات أو مواهب خاصة؟">
